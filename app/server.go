@@ -195,15 +195,15 @@ func writeStatusOk(conn net.Conn, body_ string, content_type string, encoding st
 		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	}
 
-	var body = body_
+	var body = []byte(body_)
+	buffer := new(bytes.Buffer)
 
 	if encoding == "gzip" {
 		fmt.Println("GZIP")
-		buffer := new(bytes.Buffer)
 		writer := gzip.NewWriter(buffer)
 		writer.Write(make([]byte, buffer.Len()))
 
-		body = buffer.String()
+		body = buffer.Bytes()
 	}
 
 	fmt.Println(body_, encoding)
@@ -211,7 +211,7 @@ func writeStatusOk(conn net.Conn, body_ string, content_type string, encoding st
 
 	content_length := len(body)
 
-	response_text := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", content_type, content_length, body)
+	response_text := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%q", content_type, content_length, body)
 
 	if encoding != "" {
 		response_text = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nContent-Encoding: %s\r\n\r\n%s", content_type, content_length, encoding, body)
