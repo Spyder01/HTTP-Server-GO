@@ -63,9 +63,10 @@ func (req *Request) GetAcceptEncoding() (string, bool) {
 			encodings := strings.Split(val, ",")
 
 			for _, encoding := range encodings {
-
+				
+				fmt.Println(encoding)
 				if strings.Trim(strings.ToLower(encoding), " ") == "gzip" {
-					return "", true
+					return "gzip", true
 				}
 			}
 
