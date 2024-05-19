@@ -205,7 +205,8 @@ func writeStatusOk(conn net.Conn, body_ string, content_type string, encoding st
 		body = buffer.String()
 	}
 
-	fmt.Println(body_, body)
+	fmt.Println(body_)
+	fmt.Println("BODY: ", body_)
 
 	content_length := len(body)
 
