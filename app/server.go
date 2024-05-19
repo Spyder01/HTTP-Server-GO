@@ -50,6 +50,29 @@ func (req *Request) GetUserAgent() (string, bool) {
 	return "", false
 }
 
+func (req *Request) GetAcceptEncoding() (string, bool) {
+
+	for _, v := range req.Headers {
+		key, val, exists := strings.Cut(v, ":")
+
+		if !exists {
+			continue
+		}
+
+		if strings.ToLower(key) == "accept-encoding" {
+			encoding := strings.Trim(val, " ")
+
+			if encoding != "gzip" {
+				return "", false
+			}
+
+			return encoding, true
+		}
+	}
+
+	return "", false
+}
+
 var directory string = "."
 
 func main() {
@@ -133,7 +156,7 @@ func handleConnection(conn net.Conn, request []byte) {
 			return
 		}
 
-		writeStatusOk(conn, string(data), "application/octet-stream")
+		writeStatusOk(conn, string(data), "application/octet-stream", "")
 
 	} else if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
 		user_agen, found := request_.GetUserAgent()
@@ -144,19 +167,25 @@ func handleConnection(conn net.Conn, request []byte) {
 			writeStatusNotFound(conn)
 		}
 
-		writeStatusOk(conn, user_agen, "text/plain")
+		writeStatusOk(conn, user_agen, "text/plain", "")
 	} else if strings.HasPrefix(request_.RequestLine, "GET /echo/") {
 		str := strings.TrimSuffix(strings.TrimPrefix(request_.RequestLine, "GET /echo/"), " HTTP/1.1")
 
-		writeStatusOk(conn, str, "text/plain")
+		encoding, found := request_.GetAcceptEncoding()
+
+		if !found {
+			writeStatusOk(conn, str, "text/plain", encoding)
+		}
+
+		writeStatusOk(conn, str, "text/plain", encoding)
 	} else if strings.HasPrefix(request_.RequestLine, "GET / HTTP/1.1") {
-		writeStatusOk(conn, "", "text/plain")
+		writeStatusOk(conn, "", "text/plain", "")
 	} else {
 		writeStatusNotFound(conn)
 	}
 }
 
-func writeStatusOk(conn net.Conn, body string, content_type string) {
+func writeStatusOk(conn net.Conn, body string, content_type string, encoding string) {
 	if len(body) == 0 {
 		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	}
@@ -164,6 +193,10 @@ func writeStatusOk(conn net.Conn, body string, content_type string) {
 	content_length := len(body)
 
 	response_text := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", content_type, content_length, body)
+
+	if encoding != "" {
+		response_text = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n Accept-Encoding: %d\r\n\r\n%s", content_type, content_length, body, encoding)
+	}
 
 	conn.Write([]byte(response_text))
 }
