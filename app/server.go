@@ -100,14 +100,12 @@ func handleConnection(conn net.Conn, request []byte) {
 		writeStatusNotFound(conn)
 	}
 
-	if strings.HasPrefix(request_.RequestLine, "GET /files") {
-		file_path := strings.Trim(strings.TrimPrefix(strings.TrimSuffix(request_.RequestLine, "HTTP/1.1"), "GET /files"), " ")
+	if strings.HasPrefix(request_.RequestLine, "POST /files") {
+		file_path := strings.Trim(strings.TrimPrefix(strings.TrimSuffix(request_.RequestLine, "HTTP/1.1"), "POST /files"), " ")
 
 		full_path := filepath.Join(directory, file_path)
 
 		err := write_file(full_path, request_.Body)
-
-		fmt.Println(err)
 
 		if err != nil {
 			writeStatusNotFound(conn)
@@ -214,7 +212,17 @@ func read_file(path string, buffer []byte) error {
 }
 
 func write_file(path string, contents string) error {
-	err := os.WriteFile(path, []byte(contents), 0644)
+
+	if !Exists(path) {
+		file, err := os.Create(path)
+		file.Close()
+
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+	}
+	err := os.WriteFile(path, []byte(contents), 0777)
 	fmt.Println("Error: ", err)
 	return err
 }
