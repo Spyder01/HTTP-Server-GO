@@ -64,12 +64,12 @@ func (req *Request) GetAcceptEncoding() (string, bool) {
 
 			for _, encoding := range encodings {
 
-				if encoding != "gzip" {
-					return "", false
+				if encoding == "gzip" {
+					return "", true
 				}
 			}
 
-			return "", true
+			return "", false
 		}
 	}
 
