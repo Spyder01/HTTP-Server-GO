@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const SEP string = "\r\n"
+
 type Request struct {
 	RequestLine string
 	Headers     []string
@@ -15,22 +17,19 @@ type Request struct {
 }
 
 func ParseRequest(req []byte) (Request, bool) {
-	request_line, rest, found := strings.Cut(string(req), "/r/n")
-
-	// fmt.Println("Request line: ", request_line)
-	fmt.Println("rest: ", rest)
+	request_line, rest, found := strings.Cut(string(req), SEP)
 
 	if !found {
 		return Request{}, found
 	}
 
-	headers, body, found := strings.Cut(rest, "\r\n\r\n")
+	headers, body, found := strings.Cut(rest, fmt.Sprintf("%s%s", SEP, SEP))
 
 	if !found {
 		return Request{}, found
 	}
 
-	return Request{RequestLine: request_line, Headers: strings.Split(headers, "/r/n"), Body: body}, true
+	return Request{RequestLine: request_line, Headers: strings.Split(headers, SEP), Body: body}, true
 }
 
 func (req *Request) GetUserAgent() (string, bool) {
