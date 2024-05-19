@@ -76,7 +76,7 @@ func main() {
 	request_, found := ParseRequest(request)
 
 	if !found {
-		writeStatusNotFound()
+		writeStatusNotFound(conn)
 	}
 
 	if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
