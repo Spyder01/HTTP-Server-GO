@@ -41,7 +41,9 @@ func main() {
 			writeStatusNotFound(conn)
 		}
 
-		fmt.Println(strings.TrimSuffix(strings.TrimPrefix(string(req), "GET /echo/"), " HTTP/1.1"))
+		str := strings.TrimSuffix(strings.TrimPrefix(string(req), "GET /echo/"), " HTTP/1.1")
+
+		writeStatusOk(conn, str)
 	} else if strings.HasPrefix(string(request), "GET / HTTP/1.1") {
 		writeStatusOk(conn, "")
 	} else {
