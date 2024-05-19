@@ -82,6 +82,8 @@ func main() {
 	if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
 		user_agen, found := request_.GetUserAgent()
 
+		fmt.Println(found)
+
 		if !found {
 			writeStatusNotFound(conn)
 		}
