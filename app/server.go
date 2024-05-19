@@ -34,9 +34,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(request)
 	if strings.HasPrefix(string(request), "GET /echo/") {
-		fmt.Println(strings.TrimSuffix(strings.TrimPrefix(string(request), "GET /echo/"), " HTTP/1.1\r\nHost: localhost:4221\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n"))
+		req, _, found := strings.Cut(string(request), "\r\n")
+
+		if !found {
+			writeStatusNotFound(conn)
+		}
+
+		fmt.Println(strings.TrimSuffix(strings.TrimPrefix(string(req), "GET /echo/"), " HTTP/1.1"))
 	} else if strings.HasPrefix(string(request), "GET / HTTP/1.1") {
 		writeStatusOk(conn, "")
 	} else {
