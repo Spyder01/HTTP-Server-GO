@@ -215,6 +215,8 @@ func writeStatusOk(conn net.Conn, body_ string, content_type string, encoding st
 
 	if encoding != "" {
 		response_text = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nContent-Encoding: %s\r\n\r\n%q", content_type, content_length, encoding, body)
+
+		fmt.Println(response_text)
 	}
 
 	conn.Write([]byte(response_text))
