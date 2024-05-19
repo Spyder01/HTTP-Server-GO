@@ -86,11 +86,8 @@ func main() {
 	if len(args) >= 2 && args[0] == "--directory" {
 		directory = args[1]
 	}
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
-	// Uncomment this block to pass the first stage
-	//
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
@@ -122,7 +119,6 @@ func handleConnection(conn net.Conn, request []byte) {
 
 	request_, found := ParseRequest(request)
 
-	fmt.Println(request_)
 
 	if !found {
 		writeStatusNotFound(conn)
@@ -166,7 +162,6 @@ func handleConnection(conn net.Conn, request []byte) {
 	} else if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
 		user_agen, found := request_.GetUserAgent()
 
-		fmt.Println(found)
 
 		if !found {
 			writeStatusNotFound(conn)
@@ -268,11 +263,9 @@ func write_file(path string, contents string) error {
 		file.Close()
 
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
 	}
 	err := os.WriteFile(path, []byte(contents), 0777)
-	fmt.Println("Error: ", err)
 	return err
 }
