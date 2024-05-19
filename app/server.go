@@ -196,7 +196,7 @@ func writeStatusOk(conn net.Conn, body string, content_type string, encoding str
 	response_text := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", content_type, content_length, body)
 
 	if encoding != "" {
-		response_text = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nAccept-Encoding: %s\r\n\r\n%s", content_type, content_length, encoding, body)
+		response_text = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nContent-Encoding: %s\r\n\r\n%s", content_type, content_length, encoding, body)
 	}
 
 	conn.Write([]byte(response_text))
