@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"log"
 	"net"
@@ -63,8 +65,7 @@ func (req *Request) GetAcceptEncoding() (string, bool) {
 			encodings := strings.Split(val, ",")
 
 			for _, encoding := range encodings {
-				
-				fmt.Println(encoding)
+
 				if strings.Trim(strings.ToLower(encoding), " ") == "gzip" {
 					return "gzip", true
 				}
@@ -189,12 +190,21 @@ func handleConnection(conn net.Conn, request []byte) {
 	}
 }
 
-func writeStatusOk(conn net.Conn, body string, content_type string, encoding string) {
-	if len(body) == 0 {
+func writeStatusOk(conn net.Conn, body_ string, content_type string, encoding string) {
+	if len(body_) == 0 {
 		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	}
 
-	fmt.Println(body)
+	var body = body_
+
+	if encoding == "gzip" {
+		buffer := new(bytes.Buffer)
+		writer := gzip.NewWriter(buffer)
+		writer.Write(make([]byte, buffer.Len()))
+
+		body = string(buffer.Bytes())
+	}
+
 	content_length := len(body)
 
 	response_text := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", content_type, content_length, body)
