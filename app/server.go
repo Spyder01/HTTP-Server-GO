@@ -201,7 +201,7 @@ func writeStatusOk(conn net.Conn, body_ string, content_type string, encoding st
 	if encoding == "gzip" {
 		fmt.Println("GZIP")
 		writer := gzip.NewWriter(buffer)
-		writer.Write([]byte(body))
+		writer.Write(body)
 
 	}
 
