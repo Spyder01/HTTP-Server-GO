@@ -49,5 +49,5 @@ func writeStatusOk(conn net.Conn) {
 }
 
 func writeStatusNotFound(conn net.Conn) {
-	conn.Write([]byte("HTTP/1.1 404 \r\n\r\n"))
+	conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 }
