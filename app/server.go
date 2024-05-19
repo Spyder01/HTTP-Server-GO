@@ -35,17 +35,27 @@ func main() {
 	}
 
 	fmt.Println(request)
-
-	if strings.HasPrefix(string(request), "GET / HTTP/1.1") {
-		writeStatusOk(conn)
+	if strings.HasPrefix(string(request), "GET /echo/") {
+		strings.TrimSuffix(strings.TrimPrefix(string(request), "GET /echo/"), " HTTP/1.1\r\nHost: localhost:4221\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n")
+	} else if strings.HasPrefix(string(request), "GET / HTTP/1.1") {
+		writeStatusOk(conn, "")
 	} else {
 		writeStatusNotFound(conn)
 	}
 
 }
 
-func writeStatusOk(conn net.Conn) {
-	conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+func writeStatusOk(conn net.Conn, body string) {
+	if len(body) == 0 {
+		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+	}
+
+	content_type := "text/plain"
+	content_length := len(body)
+
+	response_text := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", content_type, content_length, body)
+
+	conn.Write([]byte(response_text))
 }
 
 func writeStatusNotFound(conn net.Conn) {
