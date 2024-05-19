@@ -203,6 +203,7 @@ func writeStatusOk(conn net.Conn, body_ string, content_type string, encoding st
 		writer := gzip.NewWriter(buffer)
 		writer.Write(body)
 
+		writer.Flush()
 	}
 
 	fmt.Println(body_, encoding)
