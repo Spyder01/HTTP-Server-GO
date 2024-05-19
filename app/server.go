@@ -67,9 +67,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	go handleConnection(conn)
+}
+
+func handleConnection(conn net.Conn) {
 	request := make([]byte, 1024)
 
-	_, err = conn.Read(request)
+	_, err := conn.Read(request)
 
 	if err != nil {
 		log.Fatal(err)
@@ -102,7 +106,6 @@ func main() {
 	} else {
 		writeStatusNotFound(conn)
 	}
-
 }
 
 func writeStatusOk(conn net.Conn, body string) {
