@@ -215,6 +215,6 @@ func read_file(path string, buffer []byte) error {
 
 func write_file(path string, contents string) error {
 	err := os.WriteFile(path, []byte(contents), 0644)
-
+	fmt.Println("Error: ", err)
 	return err
 }
