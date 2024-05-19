@@ -190,6 +190,7 @@ func writeStatusOk(conn net.Conn, body string, content_type string, encoding str
 		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	}
 
+	fmt.Println(body)
 	content_length := len(body)
 
 	response_text := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", content_type, content_length, body)
