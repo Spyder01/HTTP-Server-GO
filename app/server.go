@@ -10,30 +10,29 @@ import (
 
 type Request struct {
 	RequestLine string
-	Headers []string
-	Body string
+	Headers     []string
+	Body        string
 }
 
 func ParseRequest(req []byte) (Request, bool) {
 	request_line, rest, found := strings.Cut(string(req), "/r/n")
-	
+
 	if !found {
-		return nil, found
+		return Request{}, found
 	}
 
 	headers, body, found := strings.Cut(rest, "\r\n\r\n")
 
-		
 	if !found {
-		return nil, found
+		return Request{}, found
 	}
 
-	return Request{request_line: request_line, Headers: strings.Split(headers, "/r/n"), Body: body}
+	return Request{RequestLine: request_line, Headers: strings.Split(headers, "/r/n"), Body: body}, true
 }
 
 func (req *Request) GetUserAgent() (string, bool) {
-	
-	 for _, v := range req.Headers {
+
+	for _, v := range req.Headers {
 		key, val, exists := strings.Cut(v, ":")
 
 		if !exists {
@@ -43,9 +42,9 @@ func (req *Request) GetUserAgent() (string, bool) {
 		if strings.ToLower(key) == "user-agent" {
 			return strings.Trim(val, " "), true
 		}
-	 }
+	}
 
-	 return "", false
+	return "", false
 }
 
 func main() {
@@ -79,7 +78,6 @@ func main() {
 	if !found {
 		writeStatusNotFound()
 	}
-
 
 	if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
 		user_agen, found := request_.GetUserAgent()
@@ -116,8 +114,4 @@ func writeStatusOk(conn net.Conn, body string) {
 
 func writeStatusNotFound(conn net.Conn) {
 	conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
-}
-
-func readUserAgent(request_text string) {
-	_, rest, found := strings.
 }
