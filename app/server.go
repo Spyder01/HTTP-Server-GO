@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"strings"
@@ -73,40 +72,45 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
-	request := make([]byte, 1024)
 
-	_, err := conn.Read(request)
+	defer conn.Close()
+	for {
 
-	if err != nil {
-		log.Fatal(err)
-	}
+		request := make([]byte, 1024)
 
-	request_, found := ParseRequest(request)
+		_, err := conn.Read(request)
 
-	fmt.Println(request_)
+		if err != nil {
+			os.Exit(1)
+		}
 
-	if !found {
-		writeStatusNotFound(conn)
-	}
+		request_, found := ParseRequest(request)
 
-	if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
-		user_agen, found := request_.GetUserAgent()
-
-		fmt.Println(found)
+		fmt.Println(request_)
 
 		if !found {
 			writeStatusNotFound(conn)
 		}
 
-		writeStatusOk(conn, user_agen)
-	} else if strings.HasPrefix(request_.RequestLine, "GET /echo/") {
-		str := strings.TrimSuffix(strings.TrimPrefix(request_.RequestLine, "GET /echo/"), " HTTP/1.1")
+		if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
+			user_agen, found := request_.GetUserAgent()
 
-		writeStatusOk(conn, str)
-	} else if strings.HasPrefix(request_.RequestLine, "GET / HTTP/1.1") {
-		writeStatusOk(conn, "")
-	} else {
-		writeStatusNotFound(conn)
+			fmt.Println(found)
+
+			if !found {
+				writeStatusNotFound(conn)
+			}
+
+			writeStatusOk(conn, user_agen)
+		} else if strings.HasPrefix(request_.RequestLine, "GET /echo/") {
+			str := strings.TrimSuffix(strings.TrimPrefix(request_.RequestLine, "GET /echo/"), " HTTP/1.1")
+
+			writeStatusOk(conn, str)
+		} else if strings.HasPrefix(request_.RequestLine, "GET / HTTP/1.1") {
+			writeStatusOk(conn, "")
+		} else {
+			writeStatusNotFound(conn)
+		}
 	}
 }
 
