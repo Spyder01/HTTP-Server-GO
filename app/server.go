@@ -60,13 +60,16 @@ func (req *Request) GetAcceptEncoding() (string, bool) {
 		}
 
 		if strings.ToLower(key) == "accept-encoding" {
-			encoding := strings.Trim(val, " ")
+			encodings := strings.Split(val, ",")
 
-			if encoding != "gzip" {
-				return "", false
+			for _, encoding := range encodings {
+
+				if encoding != "gzip" {
+					return "", false
+				}
 			}
 
-			return encoding, true
+			return "", true
 		}
 	}
 
