@@ -107,6 +107,8 @@ func handleConnection(conn net.Conn, request []byte) {
 
 		err := write_file(full_path, request_.Body)
 
+		fmt.Println(err)
+
 		if err != nil {
 			writeStatusNotFound(conn)
 			return
