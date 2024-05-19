@@ -17,7 +17,7 @@ type Request struct {
 func ParseRequest(req []byte) (Request, bool) {
 	request_line, rest, found := strings.Cut(string(req), "/r/n")
 
-	fmt.Println(rest)
+	fmt.Println("Rest: ", rest)
 
 	if !found {
 		return Request{}, found
@@ -77,11 +77,11 @@ func main() {
 
 	request_, found := ParseRequest(request)
 
+	fmt.Println(request_)
+
 	if !found {
 		writeStatusNotFound(conn)
 	}
-
-	fmt.Println(request_)
 
 	if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
 		user_agen, found := request_.GetUserAgent()
