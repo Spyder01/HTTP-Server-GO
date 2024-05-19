@@ -67,7 +67,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	go handleConnection(conn)
+	for {
+		go handleConnection(conn)
+	}
 }
 
 func handleConnection(conn net.Conn) {
