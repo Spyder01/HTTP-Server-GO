@@ -168,8 +168,8 @@ func writeStatusOk(conn net.Conn, body string, content_type string) {
 	conn.Write([]byte(response_text))
 }
 
-func writeStatusComplete(conn net.Conn) {
-	conn.Write([]byte("HTTP/1.1 201 OK\r\n\r\n"))
+func writeStatusCreated(conn net.Conn) {
+	conn.Write([]byte("HTTP/1.1 201 Created\r\n\r\n"))
 }
 
 func writeStatusNotFound(conn net.Conn) {
