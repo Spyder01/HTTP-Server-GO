@@ -112,7 +112,7 @@ func handleConnection(conn net.Conn, request []byte) {
 			return
 		}
 
-		writeStatusComplete(conn)
+		writeStatusCreated(conn)
 
 	} else if strings.HasPrefix(request_.RequestLine, "GET /files") {
 		file_path := strings.Trim(strings.TrimPrefix(strings.TrimSuffix(request_.RequestLine, "HTTP/1.1"), "GET /files"), " ")
