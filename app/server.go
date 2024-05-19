@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -60,55 +61,55 @@ func main() {
 		os.Exit(1)
 	}
 
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
-	}
-
-	go handleConnection(conn)
-}
-
-func handleConnection(conn net.Conn) {
-
-	defer conn.Close()
 	for {
-
-		request := make([]byte, 1024)
-
-		_, err := conn.Read(request)
-
+		conn, err := l.Accept()
 		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
 		}
 
-		request_, found := ParseRequest(request)
+		request := make([]byte, 1024)
 
-		fmt.Println(request_)
+		n, err := conn.Read(request)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		go handleConnection(conn, request[:n])
+	}
+}
+
+func handleConnection(conn net.Conn, request []byte) {
+
+	defer conn.Close()
+
+	request_, found := ParseRequest(request)
+
+	fmt.Println(request_)
+
+	if !found {
+		writeStatusNotFound(conn)
+	}
+
+	if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
+		user_agen, found := request_.GetUserAgent()
+
+		fmt.Println(found)
 
 		if !found {
 			writeStatusNotFound(conn)
 		}
 
-		if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
-			user_agen, found := request_.GetUserAgent()
+		writeStatusOk(conn, user_agen)
+	} else if strings.HasPrefix(request_.RequestLine, "GET /echo/") {
+		str := strings.TrimSuffix(strings.TrimPrefix(request_.RequestLine, "GET /echo/"), " HTTP/1.1")
 
-			fmt.Println(found)
-
-			if !found {
-				writeStatusNotFound(conn)
-			}
-
-			writeStatusOk(conn, user_agen)
-		} else if strings.HasPrefix(request_.RequestLine, "GET /echo/") {
-			str := strings.TrimSuffix(strings.TrimPrefix(request_.RequestLine, "GET /echo/"), " HTTP/1.1")
-
-			writeStatusOk(conn, str)
-		} else if strings.HasPrefix(request_.RequestLine, "GET / HTTP/1.1") {
-			writeStatusOk(conn, "")
-		} else {
-			writeStatusNotFound(conn)
-		}
+		writeStatusOk(conn, str)
+	} else if strings.HasPrefix(request_.RequestLine, "GET / HTTP/1.1") {
+		writeStatusOk(conn, "")
+	} else {
+		writeStatusNotFound(conn)
 	}
 }
 
