@@ -191,35 +191,31 @@ func handleConnection(conn net.Conn, request []byte) {
 }
 
 func writeStatusOk(conn net.Conn, body_ string, content_type string, encoding string) {
-	if len(body_) == 0 {
-		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
-	}
-
-	var body = []byte(body_)
-	buffer := new(bytes.Buffer)
+	var body []byte
+	var buffer bytes.Buffer
 
 	if encoding == "gzip" {
-		fmt.Println("GZIP")
-		writer := gzip.NewWriter(buffer)
-		writer.Write(body)
-
-		writer.Flush()
+		gz := gzip.NewWriter(&buffer)
+		_, err := gz.Write([]byte(body_))
+		if err != nil {
+			writeStatusNotFound(conn)
+			return
+		}
+		gz.Close()
+		body = buffer.Bytes()
+	} else {
+		body = []byte(body_)
 	}
-
-	fmt.Println(body_, encoding)
-	fmt.Println("BODY: ", body)
 
 	content_length := len(body)
-
-	response_text := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%q", content_type, content_length, body)
-
+	response_text := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n", content_type, content_length)
 	if encoding != "" {
-		response_text = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Encoding: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", encoding, content_type, content_length, []byte(body))
-
-		fmt.Println("RESPONSE: ", response_text)
+		response_text += fmt.Sprintf("Content-Encoding: %s\r\n", encoding)
 	}
+	response_text += "\r\n"
 
 	conn.Write([]byte(response_text))
+	conn.Write(body)
 }
 
 func writeStatusCreated(conn net.Conn) {
