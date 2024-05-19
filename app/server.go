@@ -17,7 +17,8 @@ type Request struct {
 func ParseRequest(req []byte) (Request, bool) {
 	request_line, rest, found := strings.Cut(string(req), "/r/n")
 
-	fmt.Println("Rest: ", request_line)
+	fmt.Println("Request line: ", request_line)
+	fmt.Println("rest", rest)
 
 	if !found {
 		return Request{}, found
