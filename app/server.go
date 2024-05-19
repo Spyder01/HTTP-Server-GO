@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -49,7 +50,14 @@ func (req *Request) GetUserAgent() (string, bool) {
 	return "", false
 }
 
+var directory string = "."
+
 func main() {
+	args := os.Args[1:]
+
+	if len(args) >= 2 && args[0] == "--directory" {
+		directory = args[1]
+	}
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
@@ -92,7 +100,28 @@ func handleConnection(conn net.Conn, request []byte) {
 		writeStatusNotFound(conn)
 	}
 
-	if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
+	if strings.HasPrefix(request_.RequestLine, "GET /files") {
+		file_path := strings.Trim(strings.TrimPrefix(strings.TrimSuffix(request_.RequestLine, "HTTP/1.1"), "GET /files"), " ")
+
+		full_path := filepath.Join(directory, file_path)
+
+		if !Exists(full_path) {
+			writeStatusNotFound(conn)
+			return
+		}
+
+		data := make([]byte, GetFileSize(full_path))
+
+		err := read_file(full_path, data)
+
+		if err != nil {
+			writeStatusNotFound(conn)
+			return
+		}
+
+		writeStatusOk(conn, string(data), "application/octet-stream")
+
+	} else if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
 		user_agen, found := request_.GetUserAgent()
 
 		fmt.Println(found)
@@ -101,24 +130,23 @@ func handleConnection(conn net.Conn, request []byte) {
 			writeStatusNotFound(conn)
 		}
 
-		writeStatusOk(conn, user_agen)
+		writeStatusOk(conn, user_agen, "text/plain")
 	} else if strings.HasPrefix(request_.RequestLine, "GET /echo/") {
 		str := strings.TrimSuffix(strings.TrimPrefix(request_.RequestLine, "GET /echo/"), " HTTP/1.1")
 
-		writeStatusOk(conn, str)
+		writeStatusOk(conn, str, "text/plain")
 	} else if strings.HasPrefix(request_.RequestLine, "GET / HTTP/1.1") {
-		writeStatusOk(conn, "")
+		writeStatusOk(conn, "", "text/plain")
 	} else {
 		writeStatusNotFound(conn)
 	}
 }
 
-func writeStatusOk(conn net.Conn, body string) {
+func writeStatusOk(conn net.Conn, body string, content_type string) {
 	if len(body) == 0 {
 		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	}
 
-	content_type := "text/plain"
 	content_length := len(body)
 
 	response_text := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", content_type, content_length, body)
@@ -128,4 +156,39 @@ func writeStatusOk(conn net.Conn, body string) {
 
 func writeStatusNotFound(conn net.Conn) {
 	conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+}
+
+func Exists(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
+func GetFileSize(path string) int {
+	stat, err := os.Stat(path)
+
+	if err != nil {
+		return 0
+	}
+
+	return int(stat.Size())
+}
+
+func read_file(path string, buffer []byte) error {
+	file, err := os.Open(path)
+
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Read(buffer)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
