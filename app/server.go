@@ -8,6 +8,46 @@ import (
 	"strings"
 )
 
+type Request struct {
+	RequestLine string
+	Headers []string
+	Body string
+}
+
+func ParseRequest(req []byte) (Request, bool) {
+	request_line, rest, found := strings.Cut(string(req), "/r/n")
+	
+	if !found {
+		return nil, found
+	}
+
+	headers, body, found := strings.Cut(rest, "\r\n\r\n")
+
+		
+	if !found {
+		return nil, found
+	}
+
+	return Request{request_line: request_line, Headers: strings.Split(headers, "/r/n"), Body: body}
+}
+
+func (req *Request) GetUserAgent() (string, bool) {
+	
+	 for _, v := range req.Headers {
+		key, val, exists := strings.Cut(v, ":")
+
+		if !exists {
+			continue
+		}
+
+		if strings.ToLower(key) == "user-agent" {
+			return strings.Trim(val, " "), true
+		}
+	 }
+
+	 return "", false
+}
+
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
@@ -34,17 +74,26 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if strings.HasPrefix(string(request), "GET /echo/") {
-		req, _, found := strings.Cut(string(request), "\r\n")
+	request_, found := ParseRequest(request)
+
+	if !found {
+		writeStatusNotFound()
+	}
+
+
+	if strings.HasPrefix(request_.RequestLine, "GET /user-agent") {
+		user_agen, found := request_.GetUserAgent()
 
 		if !found {
 			writeStatusNotFound(conn)
 		}
 
-		str := strings.TrimSuffix(strings.TrimPrefix(string(req), "GET /echo/"), " HTTP/1.1")
+		writeStatusOk(conn, user_agen)
+	} else if strings.HasPrefix(request_.RequestLine, "GET /echo/") {
+		str := strings.TrimSuffix(strings.TrimPrefix(request_.RequestLine, "GET /echo/"), " HTTP/1.1")
 
 		writeStatusOk(conn, str)
-	} else if strings.HasPrefix(string(request), "GET / HTTP/1.1") {
+	} else if strings.HasPrefix(request_.RequestLine, "GET / HTTP/1.1") {
 		writeStatusOk(conn, "")
 	} else {
 		writeStatusNotFound(conn)
@@ -67,4 +116,8 @@ func writeStatusOk(conn net.Conn, body string) {
 
 func writeStatusNotFound(conn net.Conn) {
 	conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+}
+
+func readUserAgent(request_text string) {
+	_, rest, found := strings.
 }
